@@ -44,19 +44,10 @@ public final class ZipkinState {
 
     public synchronized Span popClientSpan(Exchange exchange) {
         Span span = popClientSpan(exchange, clientSpans);
-        updateExchangeZipkinHeaders(exchange, span, clientSpans);
-        return span;
-    }
-
-    private void updateExchangeZipkinHeaders(Exchange exchange, Span span, Deque<Span> spans) {
         if (span.context().parentId() != null) {
-            Optional<Span> parent = findParent(spans, span);
-            parent.ifPresent(parentSpan -> {
-                exchange.getIn().setHeader(ZipkinConstants.SPAN_ID, parentSpan.context().spanIdString());
-                exchange.getIn().setHeader(ZipkinConstants.PARENT_SPAN_ID, parentSpan.context().parentIdString());
-            });
-
+            exchange.getIn().setHeader(ZipkinConstants.SPAN_ID, span.context().parentIdString());
         }
+        return span;
     }
 
     private Span popClientSpan(Exchange exchange, Deque<Span> spans) {
@@ -87,18 +78,15 @@ public final class ZipkinState {
         }
     }
 
-    private Optional<Span> findParent(Deque<Span> spans, Span child) {
-        return spans.stream().filter(span -> span.context().spanId() == child.context().parentIdAsLong()).findFirst();
-
-    }
-
     public synchronized void pushServerSpan(Span span) {
         serverSpans.push(span);
     }
 
     public synchronized Span popServerSpan(Exchange exchange) {
         Span span = popServerSpan(exchange, serverSpans);
-        updateExchangeZipkinHeaders(exchange, span, serverSpans);
+        if (span.context().parentId() != null) {
+            exchange.getIn().setHeader(ZipkinConstants.SPAN_ID, span.context().parentIdString());
+        }
         return span;
     }
 
