@@ -644,7 +644,7 @@ public class ZipkinTracer extends ServiceSupport implements RoutePolicyFactory, 
         ZipkinState state = event.getExchange().getProperty(ZipkinState.KEY, ZipkinState.class);
         if (state != null) {
             // only process if it was a zipkin client event
-            span = state.popClientSpan();
+            span = state.popClientSpan(event.getExchange());
         }
 
         if (span != null) {
@@ -725,7 +725,7 @@ public class ZipkinTracer extends ServiceSupport implements RoutePolicyFactory, 
         ZipkinState state = exchange.getProperty(ZipkinState.KEY, ZipkinState.class);
         if (state != null) {
             // only process if it was a zipkin server event
-            span = state.popServerSpan();
+            span = state.popServerSpan(exchange);
         }
 
         if (span != null) {
